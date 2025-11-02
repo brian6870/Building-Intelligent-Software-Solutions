@@ -1,0 +1,3 @@
+Manual implementation time: 0.6517s
+AI implementation time: 0.9075s
+Performance ratio: 0.72x
