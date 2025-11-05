@@ -1,7 +1,7 @@
 import timeit
 import random
 from manual import sort_list_of_dicts_manual
-from ai import sort_list_of_dicts_ai
+from Ai import sort_list_of_dicts_ai
 
 # Generate large test dataset
 large_data = [

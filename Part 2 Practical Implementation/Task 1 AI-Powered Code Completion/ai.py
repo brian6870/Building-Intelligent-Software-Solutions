@@ -1,39 +1,40 @@
 def sort_list_of_dicts_ai(data, key):
     """
-    Sorts a list of dictionaries by a specified key using AI-generated logic.
+    Sorts a list of dictionaries by a specific key.
     
     Args:
-        data (list): List of dictionaries to sort
+        data (list): List of dictionaries
         key (str): Key to sort by
     
     Returns:
-        list: Sorted list of dictionaries
+        list: Sorted list
     """
-    if not data:
-        return []
-    
-    # Validate that key exists in all dictionaries
-    if not all(key in item for item in data):
-        missing_keys = [i for i, item in enumerate(data) if key not in item]
-        raise KeyError(f"Key '{key}' missing in items: {missing_keys}")
-    
-    try:
-        # Sort the data using the specified key
-        sorted_data = sorted(data, key=lambda x: x[key])
-        return sorted_data
-    except TypeError as e:
-        raise TypeError(f"Cannot sort by key '{key}': {str(e)}")
+    return sorted(data, key=lambda x: x[key])
 
-# Test the function
+def sort_list_of_dicts_multikey(data, keys):
+    """Sort by multiple keys"""
+    return sorted(data, key=lambda x: tuple(x[k] for k in keys))
+
+def sort_list_of_dicts_nested(data, key_path):
+    """Sort by nested key using path like 'user.profile.age'"""
+    def get_nested_value(item, path):
+        keys = path.split('.')
+        for k in keys:
+            item = item[k]
+        return item
+    return sorted(data, key=lambda x: get_nested_value(x, key_path))
+
+# Test data
 test_data = [
     {'name': 'Alice', 'age': 30, 'score': 85},
     {'name': 'Bob', 'age': 25, 'score': 92},
     {'name': 'Charlie', 'age': 35, 'score': 78}
 ]
-# Test cases
-print("Original:", test_data)
-print("Sorted by age:", sort_list_of_dicts_ai(test_data, 'age'))
-print("Sorted by score:", sort_list_of_dicts_ai(test_data, 'score'))
-print("Sorted by score (desc):", sort_list_of_dicts_ai(test_data, 'score')[::-1])
-# Edge case: empty list
-print("Empty list:", sort_list_of_dicts_ai([], 'age'))
+
+# Test the functions
+if __name__ == "__main__":
+    print("Sorted by age:")
+    print(sort_list_of_dicts_ai(test_data, 'age'))
+    
+    print("\nSorted by multiple keys (score, name):")
+    print(sort_list_of_dicts_multikey(test_data, ['score', 'name']))
