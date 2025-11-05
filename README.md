@@ -28,8 +28,7 @@ The implementation demonstrates GitHub Copilot's capabilities in generating effi
 The project implements an **AI-enhanced Selenium testing framework** that goes beyond traditional automation. The system employs multiple selector strategies with intelligent fallback mechanisms, adaptive waiting patterns, and comprehensive visual documentation through automated screenshots.
 
 ### 📊 Predictive Analytics for Resource Management
-Using the Breast Cancer Wisconsin dataset as a proxy for software issue tracking, the project builds a predictive model that can classify issues by priority level. The **Random Forest classifier** achieved impressive performance metrics with **79.8% accuracy** and **77.5% weighted F1-score**.
-Acess the model via the following link https://building-intelligent-software-solutions-dfjvegzoxzrqr8gzzyuttf.streamlit.app
+Using the Breast Cancer Wisconsin dataset as a proxy for software issue tracking, the project builds a predictive model that can classify issues by priority level. The **Random Forest classifier** achieved impressive performance metrics with **79.8% accuracy** and **77.5% weighted F1-score**.Acess the model via the following link https://building-intelligent-software-solutions-dfjvegzoxzrqr8gzzyuttf.streamlit.app
 ---
 
 ## Ethical Considerations and Impact
