@@ -18,16 +18,63 @@ class CancerClassifierApp:
     def __init__(self):
         self.model = None
         self.class_names = ['benign', 'malignant']
+        self.model_path = None
         self.load_model()
     
+    def find_model_file(self):
+        """Search for model file in current directory and subdirectories"""
+        model_name = 'cancer_classification_model.h5'
+        
+        # Check current directory first
+        if os.path.exists(model_name):
+            return model_name
+        
+        # Search in subdirectories
+        for root, dirs, files in os.walk('.'):
+            if model_name in files:
+                return os.path.join(root, model_name)
+        
+        # Also check for .keras format
+        model_name_keras = 'cancer_classification_model.keras'
+        if os.path.exists(model_name_keras):
+            return model_name_keras
+        
+        for root, dirs, files in os.walk('.'):
+            if model_name_keras in files:
+                return os.path.join(root, model_name_keras)
+        
+        return None
+    
     def load_model(self):
-        """Load the trained model"""
+        """Load the trained model from anywhere in the directory/repo"""
         try:
-            self.model = tf.keras.models.load_model('cancer_classification_model.h5')
+            self.model_path = self.find_model_file()
+            
+            if self.model_path is None:
+                st.error("❌ Model file not found!")
+                st.info("""
+                Could not find 'cancer_classification_model.h5' or 'cancer_classification_model.keras' 
+                in the current directory or any subdirectories.
+                
+                Please make sure:
+                1. The model file exists in this repository
+                2. The file name is correct
+                3. You've run the training script first
+                """)
+                return
+            
+            st.sidebar.info(f"📁 Loading model from: {self.model_path}")
+            self.model = tf.keras.models.load_model(self.model_path)
             st.sidebar.success("✅ Model loaded successfully!")
+            
         except Exception as e:
-            st.error(f"Error loading model: {e}")
-            st.info("Please make sure 'cancer_classification_model.h5' is in the same directory")
+            st.error(f"❌ Error loading model: {e}")
+            st.info("""
+            The model file was found but couldn't be loaded. This might be due to:
+            - Incompatible TensorFlow version
+            - Corrupted model file
+            - Missing custom objects/layers
+            """)
     
     def preprocess_image(self, image):
         """Preprocess the uploaded image for prediction"""
@@ -72,6 +119,15 @@ class CancerClassifierApp:
             st.progress(float(confidence))
             st.write("")
     
+    def display_model_info(self):
+        """Display information about the loaded model"""
+        if self.model and self.model_path:
+            with st.sidebar.expander("📊 Model Details"):
+                st.write(f"**Model Location:** `{self.model_path}`")
+                st.write(f"**Model Layers:** {len(self.model.layers)}")
+                st.write(f"**Input Shape:** {self.model.input_shape}")
+                st.write(f"**Output Shape:** {self.model.output_shape}")
+    
     def run(self):
         """Run the Streamlit app"""
         # Header
@@ -91,10 +147,19 @@ class CancerClassifierApp:
         st.sidebar.text("F1-Score: 77.5%")
         st.sidebar.text("Classes: Benign, Malignant")
         
+        # Display model details if loaded
+        self.display_model_info()
+        
         st.sidebar.markdown("### Instructions")
         st.sidebar.text("1. Upload a medical image")
         st.sidebar.text("2. Wait for prediction")
         st.sidebar.text("3. View results and confidence")
+        
+        # Show model status
+        if self.model is None:
+            st.sidebar.error("❌ Model not loaded")
+        else:
+            st.sidebar.success("✅ Model ready for predictions")
         
         # Main content area
         col1, col2 = st.columns([1, 1])
@@ -115,7 +180,7 @@ class CancerClassifierApp:
                 st.image(image, caption="Uploaded Image", use_container_width=True)
                 
                 # Make prediction when button is clicked
-                if st.button("🔍 Analyze Image", type="primary"):
+                if st.button("🔍 Analyze Image", type="primary", disabled=self.model is None):
                     with st.spinner("Analyzing image..."):
                         predicted_class, confidence, all_predictions = self.predict_image(image)
                     
@@ -172,28 +237,6 @@ class CancerClassifierApp:
         )
 
 def main():
-    # Check if model exists
-    if not os.path.exists('cancer_classification_model.h5'):
-        st.error("Model file 'cancer_classification_model.h5' not found!")
-        st.info("""
-        Please make sure:
-        1. The model file is in the same directory as this app
-        2. You've run the training script first
-        3. The file name is exactly 'cancer_classification_model.h5'
-        """)
-        
-        # Show training instructions
-        with st.expander("How to train the model"):
-            st.code("""
-            # Run the training script first
-            python cancer_classification.py
-            
-            # This will create the model file
-            # Then run this app again
-            streamlit run cancer_classification_app.py
-            """)
-        return
-    
     # Initialize and run the app
     app = CancerClassifierApp()
     app.run()
