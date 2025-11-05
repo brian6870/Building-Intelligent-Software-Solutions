@@ -78,11 +78,23 @@ class CancerClassifierApp:
     
     def preprocess_image(self, image):
         """Preprocess the uploaded image for prediction"""
+        # Convert to RGB if necessary
+        if image.mode != 'RGB':
+            image = image.convert('RGB')
+        
         # Resize image to match model input size (128x128)
         image = image.resize((128, 128))
         
         # Convert to numpy array and normalize
         img_array = np.array(image) / 255.0
+        
+        # Ensure the image has 3 channels (RGB)
+        if len(img_array.shape) == 2:  # Grayscale image
+            img_array = np.stack([img_array] * 3, axis=-1)
+        elif img_array.shape[-1] == 1:  # Single channel
+            img_array = np.repeat(img_array, 3, axis=-1)
+        elif img_array.shape[-1] == 4:  # RGBA image
+            img_array = img_array[:, :, :3]  # Remove alpha channel
         
         # Add batch dimension
         img_array = np.expand_dims(img_array, axis=0)
@@ -96,6 +108,9 @@ class CancerClassifierApp:
         
         # Preprocess image
         processed_image = self.preprocess_image(image)
+        
+        # Debug information (optional)
+        st.sidebar.write(f"📊 Input shape: {processed_image.shape}")
         
         # Make prediction
         predictions = self.model.predict(processed_image, verbose=0)
@@ -127,6 +142,7 @@ class CancerClassifierApp:
                 st.write(f"**Model Layers:** {len(self.model.layers)}")
                 st.write(f"**Input Shape:** {self.model.input_shape}")
                 st.write(f"**Output Shape:** {self.model.output_shape}")
+                st.write(f"**Expected Input:** RGB images (128x128x3)")
     
     def run(self):
         """Run the Streamlit app"""
@@ -155,6 +171,19 @@ class CancerClassifierApp:
         st.sidebar.text("2. Wait for prediction")
         st.sidebar.text("3. View results and confidence")
         
+        # Image format info
+        with st.sidebar.expander("📷 Image Requirements"):
+            st.write("""
+            **Supported formats:** PNG, JPG, JPEG, TIFF, BMP
+            
+            **Image types handled:**
+            - RGB images (3 channels)
+            - Grayscale images (converted to RGB)
+            - RGBA images (alpha channel removed)
+            
+            **Expected input:** 128×128×3 RGB images
+            """)
+        
         # Show model status
         if self.model is None:
             st.sidebar.error("❌ Model not loaded")
@@ -177,6 +206,12 @@ class CancerClassifierApp:
             if uploaded_file is not None:
                 # Display uploaded image
                 image = Image.open(uploaded_file)
+                
+                # Show image information
+                st.write(f"**Image format:** {image.format}")
+                st.write(f"**Image mode:** {image.mode}")
+                st.write(f"**Image size:** {image.size}")
+                
                 st.image(image, caption="Uploaded Image", use_container_width=True)
                 
                 # Make prediction when button is clicked
@@ -225,6 +260,11 @@ class CancerClassifierApp:
                     st.text("• Histopathology slides")
                     st.text("• Medical imaging scans")
                     st.text("• Tissue sample images")
+                    
+                    st.info("""
+                    **Note:** The model expects RGB images. Grayscale images will 
+                    be automatically converted to RGB format.
+                    """)
         
         # Footer
         st.markdown("---")
